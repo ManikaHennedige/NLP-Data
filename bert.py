@@ -28,6 +28,11 @@ def run_bert(query):
     query = list(pd.Series([query]))
     result = polarity_task(query)
 
-    return result[0]['score'] # can return result[0]['LABEL'] for the label value too
+    label = result[0]['label']
+
+    if label == "LABEL_1":
+        return "Positive"
+    else:
+        return "Negative"
 
 print(run_bert("I love tsla so much!!"))
