@@ -22,17 +22,33 @@ tokenizer_raw = urlopen(tokenizer_url)
 
 model = pickle.load(model_raw)
 tokenizer = pickle.load(tokenizer_raw)
+print("model loaded and ready!")
 
 def run_bert(query):
     polarity_task = pipeline("text-classification", model=model, tokenizer=tokenizer, device=0)
     query = list(pd.Series([query]))
     result = polarity_task(query)
 
+    return result[0]['score']
+    # label = result[0]['label']
+
+    # if label == "LABEL_1":
+    #     return "Positive"
+    # else:
+    #     return "Negative"
+
+def run_bert_clean(query):
+    polarity_task = pipeline("text-classification", model=model, tokenizer=tokenizer, device=0)
+    query = list(pd.Series([query]))
+    result = polarity_task(query)
+
     label = result[0]['label']
+    score = result[0]['score']
 
     if label == "LABEL_1":
-        return "Positive"
+        return "Positive", score
     else:
-        return "Negative"
+        return "Negative", score
 
-print(run_bert("I love tsla so much!!"))
+if __name__ == "__main__":
+    run_bert_clean()

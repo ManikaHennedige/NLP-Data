@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from urllib.request import urlopen
 import matplotlib.pyplot as plt
 from keras.models import load_model
+import os
 
 import base64
 # getting file from OneDrive
@@ -183,8 +184,12 @@ def perform_prediction(tsla_df, twitter_df):
     d = {"Date": input_df["Date"]}
     map_df = pd.DataFrame(data=d)
     test_dates = map_df.loc[test_indexes[0]:test_indexes[-1], "Date"]
+    if os.path.exists(r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"):
+        model_file_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\models\lstm.h5"
+    else:
+        model_file_path = r"C:\Users\mhenn\OneDrive\NLP Project\models\lstm.h5"
 
-    model = load_model(r"C:\Users\Manika Hennedige\OneDrive\NLP Project\models\lstm.h5")
+    model = load_model(model_file_path)
 
     pred_df, actual_df = eval_model(model, X_test, y_test, test_dates)
 
