@@ -7,10 +7,9 @@ import nltk
 import re
 
 def get_latestdate(filename):
-    df = pd.read_csv(filename, index_col = False, lineterminator = '\n', parse_dates = ['Date Created'])
-    latest_date = max(df["Date Created"])
-    latest_date = pd.to_datetime(latest_date)
-    latest_date = latest_date.strftime("%Y-%m-%d")
+    df = pd.read_csv(filename)
+    df["Date Created"] = pd.to_datetime(df["Date Created"], format="%d/%m/%Y %H:%M", errors='coerce')
+    latest_date = max(df["Date Created"]).strftime("%d/%m/%Y %H:%M")
     return latest_date
 
 def get_todaydate():

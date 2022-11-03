@@ -3,10 +3,12 @@ from csv import writer
 import snscrape.modules.twitter as sntwitter
 import pandas as pd
 import bert as bm
+import yfinance as yf
 import nltk 
 import re
 import os
 
+# this file is responsible for crawling twitter and yahoo finance for twitter sentiment and tsla stock ticker data
 def main():
     if os.path.exists(r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"):
         sentiment_file_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"
@@ -14,25 +16,25 @@ def main():
         sentiment_file_path = r"C:\Users\mhenn\OneDrive\NLP Project\data\twitter_sentiment.csv"
         
     def get_latestdate(filename):
-        df = pd.read_csv(filename, index_col = False, lineterminator = '\n', parse_dates = ['Date Created'])
-        latest_date = max(df["Date Created"])
-        latest_date = pd.to_datetime(latest_date)
-        latest_date = latest_date.strftime("%Y-%m-%d")
-        print("latest date is,", latest_date)
+        df = pd.read_csv(sentiment_file_path)
+        df["Date Created"] = pd.to_datetime(df["Date Created"], format="%d/%m/%Y %H:%M", errors='coerce')
+        latest_date = max(df["Date Created"]).strftime("%d/%m/%Y %H:%M")
         return latest_date
 
     def get_todaydate():
         today = datetime.now()
         tmr = today + timedelta(days=1)
-        tmr = tmr.strftime("%Y-%m-%d")
-        today = today.strftime("%Y-%m-%d")
+        tmr = tmr.strftime("%d/%m/%Y %H:%M")
+        today = today.strftime("%d/%m/%Y %H:%M")
         return today,tmr
 
     def crawl_tweets(latest_date, tmr):
-        latest_date = datetime.strptime(latest_date, "%Y-%m-%d")
-        start_crawl = latest_date + timedelta(days=2)
+        latest_date = datetime.strptime(latest_date, "%d/%m/%Y %H:%M")
+        start_crawl = latest_date + timedelta(days=1)
         start_crawl = start_crawl.strftime("%Y-%m-%d")
-        a = pd.date_range(start=start_crawl, end=tmr)
+        print(start_crawl)
+        tday = datetime.now().strftime("%Y-%m-%d")
+        a = pd.date_range(start=start_crawl, end=tday)
         print("Crawling tweets...")
         
         for everyday in a:
@@ -45,7 +47,7 @@ def main():
                 attributes_container.append([tweet.user.username, tweet.date, tweet.likeCount, tweet.sourceLabel, tweet.content])
             avg_score = bert(attributes_container)
             print("current date is", current)
-            data.append(current.strftime("%Y-%m-%d"))
+            data.append(current.strftime("%d/%m/%Y %H:%M"))
             data.append(avg_score)
             append_list_as_row(sentiment_file_path, data)
         print("Tweets successfully crawled")
@@ -85,8 +87,28 @@ def main():
 
     latest = get_latestdate(sentiment_file_path)
     today, tmr = get_todaydate()
-    if today>latest:
-        crawl_tweets(latest, today)
+    if datetime.strptime(today, "%d/%m/%Y %H:%M") > datetime.strptime(latest, "%d/%m/%Y %H:%M"):
+        print("today is after latest")
+        crawl_tweets(latest, today)        
     else:
         print("Tweets are up-to-date")    
             
+
+if __name__ == '__main__':
+    if os.path.exists(r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"):
+        sentiment_file_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"
+        tsla_history_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\TSLA.csv"
+    else:
+        sentiment_file_path = r"C:\Users\mhenn\OneDrive\NLP Project\data\twitter_sentiment.csv"
+        tsla_history_path = r"C:\Users\mhenn\OneDrive\NLP Project\data\TSLA.csv"
+
+
+    start = datetime(2020,1,1)
+    end = datetime.now()
+
+    tsla = yf.download("TSLA", start=start, end=end, progress=True)
+    tsla_df = pd.DataFrame(tsla)
+    print("Latest financial data retrieved")
+    # tsla["Date"]
+    tsla_df.to_csv(tsla_history_path)
+    main()

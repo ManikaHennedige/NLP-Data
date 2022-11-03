@@ -5,7 +5,6 @@ from sklearn.preprocessing import MinMaxScaler
 from urllib.request import urlopen
 import matplotlib.pyplot as plt
 from keras.models import load_model
-import os
 
 import base64
 # getting file from OneDrive
@@ -52,6 +51,7 @@ def perform_prediction(tsla_df, twitter_df):
     tsla_df['Date'] = tsla_df['Date'].astype(str)
     twitter_df = twitter_df.rename(columns={"Date Created": "Date"})
     twitter_df["Date"] = pd.to_datetime(twitter_df["Date"], errors='coerce')
+    print(twitter_df.tail())
     twitter_df['Date'] = twitter_df['Date'].astype(str)
 
     merged_data = pd.merge(tsla_df,twitter_df, how='inner', on='Date')
@@ -99,14 +99,20 @@ def perform_prediction(tsla_df, twitter_df):
     #Creating scaled data
     temp = scaler.fit_transform(temp)
 
+    print("DF ANALYSIUS")
+    print(len(labelled_data["Date"]))
+    print(labelled_data["Date"].tail())
+    print(len(labelled_data["signal"]))
+    print(labelled_data["signal"].tail())
+    print(len(pd.DataFrame(temp, columns = cols)))
+    new_df = pd.DataFrame(temp, columns = cols)
+    new_df.index = new_df.index + 10 # idk
+    print(new_df.tail())
     #Generating input_df which will be used for model training and predictions
-    input_df = pd.concat([labelled_data['Date'],pd.DataFrame(temp, columns = cols),
+    input_df = pd.concat([labelled_data['Date'],new_df,
                         labelled_data['signal']], 
                         axis=1, ignore_index=False)
-
     input_df = input_df.dropna(axis=0)
-    print(input_df.head())
-    print(input_df.tail())
 
     # Splitting entire data to create Training and Testing Data
     # We will need to split the training and testing data into equivalent 
@@ -184,12 +190,9 @@ def perform_prediction(tsla_df, twitter_df):
     d = {"Date": input_df["Date"]}
     map_df = pd.DataFrame(data=d)
     test_dates = map_df.loc[test_indexes[0]:test_indexes[-1], "Date"]
-    if os.path.exists(r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"):
-        model_file_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\models\lstm.h5"
-    else:
-        model_file_path = r"C:\Users\mhenn\OneDrive\NLP Project\models\lstm.h5"
+    print(test_dates)
 
-    model = load_model(model_file_path)
+    model = load_model(r"C:\Users\Manika Hennedige\OneDrive\NLP Project\models\lstm.h5")
 
     pred_df, actual_df = eval_model(model, X_test, y_test, test_dates)
 
