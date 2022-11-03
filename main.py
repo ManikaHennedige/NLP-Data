@@ -4,6 +4,7 @@ import yfinance as yf
 from financial_transformations import perform_prediction
 import pickle
 
+# this file runs the model on the sentiment and tsla financial information data. This should have been generated through the 'crawling.py' file
 sentiment_file_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\twitter_sentiment.csv"
 tsla_history_path = r"C:\Users\Manika Hennedige\OneDrive\NLP Project\data\TSLA.csv"
 
